@@ -133,9 +133,23 @@ def get_continence_data(Resident_ID):
     print(a)
     return jsonify(a)
 
-@app.route('/get_personalcare_chart_data/<Resident_ID>',methods=['GET'])
-def get_personalcare_chart_data(Resident_ID):
-    s = text("SELECT * FROM personal_care_chart where Resident_ID='"+Resident_ID+"'")
+@app.route('/get_personalcare_chart_data/<Resident_ID>/<id>',methods=['GET'])
+def get_personalcare_chart_data(Resident_ID,id):
+    s = text("SELECT * FROM personal_care_chart where Resident_ID='"+Resident_ID+"' and Personal_Care_Chart_Directive_ID='"+id+"'")
+    conn = engine.connect()
+    result = conn.execute(s)
+    result_as_dict = result.mappings().all()
+    x=list(result_as_dict)
+    a=[]
+    for i in x:
+        i=dict(i)
+        a.append(i)
+    print(a)
+    return jsonify(a)
+
+@app.route('/get_personalcare_directive/<Resident_ID>',methods=['GET'])
+def get_personalcare_directive(Resident_ID):
+    s = text("SELECT * FROM personal_care_chart_directive where Resident_ID='"+Resident_ID+"'")
     conn = engine.connect()
     result = conn.execute(s)
     result_as_dict = result.mappings().all()
@@ -150,23 +164,33 @@ def get_personalcare_chart_data(Resident_ID):
 def write_file(data, filename):
     with open(filename, 'wb') as file:
         file.write(data)
-@app.route('/get_wound_chart_data/<Resident_ID>',methods=['GET'])
-def get_wound_chart_data(Resident_ID):
-    s = text("SELECT * FROM image where Resident_ID='"+Resident_ID+"'")
+
+@app.route('/get_wound_chart_data/<Resident_ID>/<id>',methods=['GET'])
+def get_wound_chart_data(Resident_ID,id):
+    s = text("SELECT * FROM image where Resident_ID='"+Resident_ID+"' and Wound_Chart_Directive_ID='"+id+"'")
     conn = engine.connect()
     result = conn.execute(s)
     result_as_dict = result.mappings().all()
     x=list(result_as_dict)
     a=[]
-
-    # y= Response(img.img, mimetype=img.mimetype)
-    # y=Image.open(y)
-    # y.show()
-    # print(y)
     for i in x:
         i=dict(i)
         i["img"]=str(i["img"])
         a.append(i)
+    return jsonify(a)
+
+@app.route('/get_wound_directive/<Resident_ID>',methods=['GET'])
+def get_wound_directive(Resident_ID):
+    s = text("SELECT * FROM wound_chart_directive where Resident_ID='"+Resident_ID+"'")
+    conn = engine.connect()
+    result = conn.execute(s)
+    result_as_dict = result.mappings().all()
+    x=list(result_as_dict)
+    a=[]
+    for i in x:
+        i=dict(i)
+        a.append(i)
+    print(a)
     return jsonify(a)
 
 
@@ -336,12 +360,12 @@ def update_continence_data(Resident_ID):
 def add_personalcare_chart(Resident_ID):
     Author = request.json['author']
     Date = request.json['date']
-    Directive = request.json['directive']
     Type_Of_Hygiene = request.json['typeofhygiene']
     Time = request.json['time']
     Comment = request.json['comment']
+    DirectiveID = request.json['directiveID']
 
-    s = text("insert into personal_care_chart (Resident_ID, Author, Type_Of_Hygiene, Date, Directive, Time, Comment) values ('"+Resident_ID+"','"+Author+"','"+Type_Of_Hygiene+"','"+Date+"','"+Directive+"','"+Time+"','"+Comment+"')")
+    s = text("insert into personal_care_chart (Resident_ID,Personal_Care_Chart_Directive_ID, Author, Type_Of_Hygiene, Date, Time, Comment) values ('"+Resident_ID+"','"+str(DirectiveID)+"','"+Author+"','"+Type_Of_Hygiene+"','"+Date+"','"+Time+"','"+Comment+"')")
     print(s)
     conn = engine.connect()
     result = conn.execute(s)
@@ -370,6 +394,7 @@ class image(db.Model):
     Wound_Exudate = db.Column(db.String(100))
     Wound_Evaluation = db.Column(db.String(100))
     Author = db.Column(db.String(20))
+    Wound_Chart_Directive_ID = db.Column(db.Integer)
 
 
 @app.route('/upload_Image',methods=['POST'])
@@ -392,6 +417,9 @@ def upload_Image():
     Wound_Exudate = request.args.get('Wound_Exudate', None)
     Wound_Evaluation = request.args.get('Wound_Evaluation', None)
     Author = request.args.get('Author', None)
+    DirectiveID = request.args.get('Directive_ID', None)
+    print(DirectiveID)
+    print(type(DirectiveID))
 
     pic = request.files['customFile']
     print(request.files)
@@ -403,7 +431,7 @@ def upload_Image():
     if not filename or not mimetype:
         return 'Bad upload!', 400
     print(pic)
-    img = image(img=pic.read(), imagename=filename, mimetype=mimetype, Resident_ID=Resident_ID,Date_of_Wound_First_Assessed=Date_of_Wound_First_Assessed,Wound_Cause=Wound_Cause,Wound_Goal=Wound_Goal,Factors_May_Affect_Wound_Healing=Factors_May_Affect_Wound_Healing, Hx_Of_Ulcers=Hx_Of_Ulcers, Location_Of_Wound=Location_Of_Wound,Wound_Type=Wound_Type,Size_Length=Size_Length,Size_Width=Size_Width,Size_Depth=Size_Depth, Pain_Levels=Pain_Levels, Date_Now=Date_Now,Time_Now=Time_Now,Surrouding_Skin=Surrouding_Skin,Wound_Exudate=Wound_Exudate,Wound_Evaluation=Wound_Evaluation,Author=Author)
+    img = image(img=pic.read(), imagename=filename, mimetype=mimetype, Resident_ID=Resident_ID,Date_of_Wound_First_Assessed=Date_of_Wound_First_Assessed,Wound_Cause=Wound_Cause,Wound_Goal=Wound_Goal,Factors_May_Affect_Wound_Healing=Factors_May_Affect_Wound_Healing, Hx_Of_Ulcers=Hx_Of_Ulcers, Location_Of_Wound=Location_Of_Wound,Wound_Type=Wound_Type,Size_Length=Size_Length,Size_Width=Size_Width,Size_Depth=Size_Depth, Pain_Levels=Pain_Levels, Date_Now=Date_Now,Time_Now=Time_Now,Surrouding_Skin=Surrouding_Skin,Wound_Exudate=Wound_Exudate,Wound_Evaluation=Wound_Evaluation,Author=Author, Wound_Chart_Directive_ID=int(DirectiveID))
     db.session.add(img)
     db.session.commit()
 
