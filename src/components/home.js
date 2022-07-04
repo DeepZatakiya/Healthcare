@@ -5,9 +5,16 @@ import ReactCanvasPaint from "react-canvas-paint";
 import "react-canvas-paint/dist/index.css";
 import React, { useEffect, useRef, useState } from "react";
 import Charts from "./charts";
+import jsPDF from "jspdf";
+import Progressnote from "./progressnote";
 
 const Home = () => {
+
+  const [progress, setProgress] = useState("");
+
   const [text, setText] = useState("");
+  
+
   const [ShowCharts, setShowCharts] = useState(false);
   const [pageSwitch, setPageSwitch] = useState(true);
   const [basiccollapse, setBasicCollapse] = useState(false);
@@ -59,11 +66,14 @@ const Home = () => {
   const [hearingaids, sethearingaids] = useState("");
   const [dentures, setdentures] = useState("");
   const [continence, setcontinence] = useState("");
-  
 
   const [specialdiettype, setspecialdiettype] = useState("");
   const [likes, setlikes] = useState("");
   const [dislikes, setdislikes] = useState("");
+  const [specialdiettypeupdate, setspecialdiettypeupdate] = useState("");
+  const [likesupdate, setlikesupdate] = useState("");
+  const [dislikesupdate, setdislikesupdate] = useState("");
+
   const [sensorydislike, setsensorydislike] = useState("");
   const [foodtexture, setfoodtexture] = useState("");
   const [fluidtype, setfluidtype] = useState("");
@@ -121,14 +131,15 @@ const Home = () => {
   const [bladdercontrol, setbladdercontrol] = useState("");
   const [toiletingassistance, settoiletingassistance] = useState("");
   const [bowelmanagement, setbowelmanagement] = useState("");
-  const [toiletingactivitiesassistance, settoiletingactivitiesassistance] = useState("");
+  const [toiletingactivitiesassistance, settoiletingactivitiesassistance] =
+    useState("");
 
   const [continencegoals, setcontinencegoals] = useState("");
   const [bowelhealthgoals, setbowelhealthgoals] = useState("");
   const [bladderhealthgoals, setbladderhealthgoals] = useState("");
   const [toiletingschedule, settoiletingschedule] = useState("");
   const [continenceaids, setcontinenceaids] = useState("");
- 
+
   const [skingoals, setskingoals] = useState("");
   const [conditionofskins, setconditionofskins] = useState("");
   const [pressureareacare, setpressureareacare] = useState("");
@@ -139,10 +150,9 @@ const Home = () => {
 
   const searchHandler = async () => {
     setPageSwitch(false);
+
     let response = await fetch(`http://127.0.0.1:5000/get_main_data/${text}`);
     response = await response.json();
-    console.warn(response);
-    console.log(response[0]);
     setFirstName(response[0].FirstName);
     setLastName(response[0].LastName);
     setresidentid(response[0].Resident_ID);
@@ -188,7 +198,7 @@ const Home = () => {
     setglasses(response_for_clinical[0].Glasses);
     sethearingaids(response_for_clinical[0].HearingAids);
     setdentures(response_for_clinical[0].Dentures);
-    setcontinence(response_for_clinical[0].Continence)
+    setcontinence(response_for_clinical[0].Continence);
 
     let response_for_dietary = await fetch(
       `http://127.0.0.1:5000/get_dietary_data/${response[0].Resident_ID}`
@@ -197,6 +207,11 @@ const Home = () => {
 
     setspecialdiettype(response_for_dietary[0].SpecialDietType);
     setlikes(response_for_dietary[0].Likes);
+
+    setlikesupdate(response_for_dietary[0].Likes);
+    setdislikesupdate(response_for_dietary[0].DisLikes);
+    setspecialdiettypeupdate(response_for_dietary[0].SpecialDietType);
+
     setdislikes(response_for_dietary[0].DisLikes);
     setsensorydislike(response_for_dietary[0].SensoryDislike);
     setfoodtexture(response_for_dietary[0].FoodTexture);
@@ -266,14 +281,18 @@ const Home = () => {
     );
     response_for_toileting = await response_for_toileting.json();
 
-    setpersonalgoalstoileting(response_for_toileting[0].Personal_Goals_Toileting);
+    setpersonalgoalstoileting(
+      response_for_toileting[0].Personal_Goals_Toileting
+    );
     settoiletinggoal(response_for_toileting[0].Toileting_Goals);
     settoiletingassistance(response_for_toileting[0].Toileting_Assistance);
     settypeoftoilet(response_for_toileting[0].Type_Of_Toilet);
     setsphinctercontrol(response_for_toileting[0].Sphincter_Control);
     setbladdercontrol(response_for_toileting[0].Bladder_Control);
     setbowelmanagement(response_for_toileting[0].Bowel_Management);
-    settoiletingactivitiesassistance(response_for_toileting[0].Toileting_Activities_Assistance);
+    settoiletingactivitiesassistance(
+      response_for_toileting[0].Toileting_Activities_Assistance
+    );
 
     let response_for_continence = await fetch(
       `http://127.0.0.1:5000/get_continence_data/${response[0].Resident_ID}`
@@ -286,18 +305,18 @@ const Home = () => {
     setbowelhealthgoals(response_for_continence[0].Bowel_Health_Goals);
     setcontinencegoals(response_for_continence[0].Continence_Goals);
 
-  let response_for_skins = await fetch(
-    `http://127.0.0.1:5000/get_skin_data/${response[0].Resident_ID}`
-  );
-  response_for_skins = await response_for_skins.json();
+    let response_for_skins = await fetch(
+      `http://127.0.0.1:5000/get_skin_data/${response[0].Resident_ID}`
+    );
+    response_for_skins = await response_for_skins.json();
 
-  setskingoals(response_for_skins[0].Continence_Aids);
-  setconditionofskins(response_for_skins[0].Toileting_Schedule);
-  setpressureareacare(response_for_skins[0].Bladder_Health_Goals);
-  setskinintegritydevice(response_for_skins[0].Bowel_Health_Goals);
-  setactivewounds(response_for_skins[0].Continence_Goals);
-  setmoisture(response_for_skins[0].Bowel_Health_Goals);
-  setfrictionandshear(response_for_skins[0].Continence_Goals);
+    setskingoals(response_for_skins[0].Continence_Aids);
+    setconditionofskins(response_for_skins[0].Toileting_Schedule);
+    setpressureareacare(response_for_skins[0].Bladder_Health_Goals);
+    setskinintegritydevice(response_for_skins[0].Bowel_Health_Goals);
+    setactivewounds(response_for_skins[0].Continence_Goals);
+    setmoisture(response_for_skins[0].Bowel_Health_Goals);
+    setfrictionandshear(response_for_skins[0].Continence_Goals);
   };
   const datavalue_for_main_data = {
     FirstName: firstname,
@@ -340,7 +359,7 @@ const Home = () => {
     Glasses: glasses,
     HearingAids: hearingaids,
     Dentures: dentures,
-    Continence: continence
+    Continence: continence,
   };
 
   const datavalue_for_dietary_data = {
@@ -406,7 +425,7 @@ const Home = () => {
     Toileting_Schedule: toiletingschedule,
     Bladder_Health_Goals: bladderhealthgoals,
     Bowel_Health_Goals: bowelhealthgoals,
-    Continence_Goals: continencegoals
+    Continence_Goals: continencegoals,
   };
 
   const datavalue_for_toileting_data = {
@@ -417,7 +436,7 @@ const Home = () => {
     Sphincter_Control: sphinctercontrol,
     Bladder_Control: bladdercontrol,
     Bowel_Management: bowelmanagement,
-    Toileting_Activities_Assistance: toiletingactivitiesassistance
+    Toileting_Activities_Assistance: toiletingactivitiesassistance,
   };
 
   function updateHandler() {
@@ -436,7 +455,49 @@ const Home = () => {
     }
   }
 
-  function updateDietaryHandler() {
+  const pdfGeneratorHandler = (e) => {
+    e.preventDefault();
+    var doc = new jsPDF("p", "pt", "a4");
+    doc.html(document.querySelector("#DietaryPDF"), {
+      callback: function (pdf) {
+        pdf.save("MYPDF.pdf");
+      },
+    });
+  };
+
+  function updateDietaryHandler(e) {
+    var x = ""
+    if(specialdiettype!=specialdiettypeupdate){
+      x=x+"|" + "special diets changed from "+specialdiettypeupdate+" to "+specialdiettype 
+    }
+
+    if(likes!=likesupdate){
+      x=x+ "|" + "likes changed "+likesupdate+" to "+likes 
+    }
+
+    if(dislikes!=dislikesupdate){
+      x=x+ "|" + "dislike changed "+dislikesupdate+" to "+dislikes 
+    }
+    console.log(Date());
+
+    const datavalue_for_progress_note = {
+      subject: x,
+      author: firstname,
+      date: Date(),
+    };
+
+    if (updatetest) {
+      fetch(`http://127.0.0.1:5000/add_progress_note/${residentid}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datavalue_for_progress_note),
+      })
+        .then((resp) => resp.json())
+        .then((resp) => console.log(resp));
+    }
+    
     if (updatetest) {
       fetch(`http://127.0.0.1:5000/update_dietary_data/${residentid}`, {
         method: "PUT",
@@ -448,6 +509,7 @@ const Home = () => {
         .then((resp) => resp.json())
         .then((resp) => console.log(resp));
     }
+    e.preventDefault();
   }
 
   function updateMobilityHandler() {
@@ -463,7 +525,7 @@ const Home = () => {
         .then((resp) => console.log(resp));
     }
   }
-  
+
   function updateHygineHandler() {
     if (updatetest) {
       fetch(`http://127.0.0.1:5000/update_hygine_data/${residentid}`, {
@@ -583,1090 +645,1193 @@ const Home = () => {
       </div>
     );
   } else {
-    if(!ShowCharts){
-    return (
-      // <>
-      // <style>
-      //   {`
-      //     #canvas {
-      //       border: 1px solid black;
-      //     }
-      //   `}
-      // </style>
-      // <canvas
-      //   ref={canvas}
-      //   onMouseMove={draw}
-      //   onMouseDown={setPosition}
-      //   onMouseEnter={setPosition}
-      //   id="canvas"
-      // ></canvas>
-      // <button onClick={()=>{saveCanvas()}}></button>
-      // </>
-      <div className="App">
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">Basic Details</Navbar.Brand>
-            <Button
-              onClick={() => {
-                setBasicCollapse(!basiccollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={basiccollapse}>
-          <form>
-            <fieldset>
-              <label for="facility">Facility: </label>
-              <input
-                type="text"
-                id="facility"
-                defaultValue={facility}
-                value={facility || ""}
-                onChange={(e) => setfacility(e.target.value)}
-              />
-              <label for="roomno">Room No: </label>
-              <input
-                type="text"
-                id="roomno"
-                defaultValue={roomno}
-                value={roomno || ""}
-                onChange={(e) => setroomno(e.target.value)}
-              />
-              <label for="bed">Bed: </label>
-              <input
-                type="text"
-                id="bed"
-                defaultValue={bed}
-                value={bed || ""}
-                onChange={(e) => setbed(e.target.value)}
-              />
-              <label for="wing">Wing: </label>
-              <input
-                type="text"
-                id="wing"
-                defaultValue={wing}
-                value={wing || ""}
-                onChange={(e) => setwing(e.target.value)}
-              />
-
-              <label for="title">Title: </label>
-              <input
-                type="text"
-                id="title"
-                defaultValue={title}
-                value={title || ""}
-                onChange={(e) => settitle(e.target.value)}
-              />
-              <label for="xyz">First name: </label>
-              <input
-                type="text"
-                id="xyz"
-                defaultValue={firstname}
-                value={firstname || ""}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-              <label for="lastname">Last name: </label>
-              <input
-                type="text"
-                id="lastname"
-                value={lastname || ""}
-                onChange={(e) => {
-                  setLastName(e.target.value);
+    if (!ShowCharts) {
+      return (
+        // <>
+        // <style>
+        //   {`
+        //     #canvas {
+        //       border: 1px solid black;
+        //     }
+        //   `}
+        // </style>
+        // <canvas
+        //   ref={canvas}
+        //   onMouseMove={draw}
+        //   onMouseDown={setPosition}
+        //   onMouseEnter={setPosition}
+        //   id="canvas"
+        // ></canvas>
+        // <button onClick={()=>{saveCanvas()}}></button>
+        // </>
+        <div className="App">
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">Basic Details</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  setBasicCollapse(!basiccollapse);
                 }}
-              />
-              <label for="preferredname">Preferred name: </label>
-              <input
-                type="text"
-                id="preferredname"
-                defaultValue={preferredname}
-                value={preferredname || ""}
-                onChange={(e) => setpreferredname(e.target.value)}
-              />
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={basiccollapse}>
+            <form>
+              <fieldset>
+                <label for="facility">Facility: </label>
+                <input
+                  type="text"
+                  id="facility"
+                  defaultValue={facility}
+                  value={facility || ""}
+                  onChange={(e) => setfacility(e.target.value)}
+                />
+                <label for="roomno">Room No: </label>
+                <input
+                  type="text"
+                  id="roomno"
+                  defaultValue={roomno}
+                  value={roomno || ""}
+                  onChange={(e) => setroomno(e.target.value)}
+                />
+                <label for="bed">Bed: </label>
+                <input
+                  type="text"
+                  id="bed"
+                  defaultValue={bed}
+                  value={bed || ""}
+                  onChange={(e) => setbed(e.target.value)}
+                />
+                <label for="wing">Wing: </label>
+                <input
+                  type="text"
+                  id="wing"
+                  defaultValue={wing}
+                  value={wing || ""}
+                  onChange={(e) => setwing(e.target.value)}
+                />
 
-              <label for="gender">Gender: </label>
-              <input
-                type="text"
-                id="gender"
-                defaultValue={gender}
-                value={gender || ""}
-                onChange={(e) => setgender(e.target.value)}
-              />
-              <label for="dob">Date Of Birth: </label>
-              <input
-                type="date"
-                id="dob"
-                defaultValue={Moment(dob).format("YYYY-MM-DD")}
-                value={Moment(dob).format("YYYY-MM-DD") || ""}
-                onChange={(e) => setdob(e.target.value)}
-              />
+                <label for="title">Title: </label>
+                <input
+                  type="text"
+                  id="title"
+                  defaultValue={title}
+                  value={title || ""}
+                  onChange={(e) => settitle(e.target.value)}
+                />
+                <label for="xyz">First name: </label>
+                <input
+                  type="text"
+                  id="xyz"
+                  defaultValue={firstname}
+                  value={firstname || ""}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                <label for="lastname">Last name: </label>
+                <input
+                  type="text"
+                  id="lastname"
+                  value={lastname || ""}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                  }}
+                />
+                <label for="preferredname">Preferred name: </label>
+                <input
+                  type="text"
+                  id="preferredname"
+                  defaultValue={preferredname}
+                  value={preferredname || ""}
+                  onChange={(e) => setpreferredname(e.target.value)}
+                />
 
-              <label for="marritalstatus">Marital status: </label>
-              <input
-                type="text"
-                id="marritalstatus"
-                defaultValue={marritalstatus}
-                value={marritalstatus || ""}
-                onChange={(e) => setmarritalstatus(e.target.value)}
-              />
-              <label for="culturalbackground">Cultural Background: </label>
-              <input
-                type="text"
-                id="culturalbackground"
-                defaultValue={culturalbackground}
-                value={culturalbackground || ""}
-                onChange={(e) => setculturalbackground(e.target.value)}
-              />
-              <label for="religion">Riligion: </label>
-              <input
-                type="text"
-                id="religion"
-                defaultValue={religion}
-                value={religion || ""}
-                onChange={(e) => setreligion(e.target.value)}
-              />
-              <label for="mothertongue">Mother tongue: </label>
-              <input
-                type="text"
-                id="mothertongue"
-                defaultValue={mothertongue}
-                value={mothertongue || ""}
-                onChange={(e) => setmothertongue(e.target.value)}
-              />
+                <label for="gender">Gender: </label>
+                <input
+                  type="text"
+                  id="gender"
+                  defaultValue={gender}
+                  value={gender || ""}
+                  onChange={(e) => setgender(e.target.value)}
+                />
+                <label for="dob">Date Of Birth: </label>
+                <input
+                  type="date"
+                  id="dob"
+                  defaultValue={Moment(dob).format("YYYY-MM-DD")}
+                  value={Moment(dob).format("YYYY-MM-DD") || ""}
+                  onChange={(e) => setdob(e.target.value)}
+                />
 
-              <label for="nationality">Nationality: </label>
-              <input
-                type="text"
-                id="nationality"
-                defaultValue={nationality}
-                value={nationality || ""}
-                onChange={(e) => setnationality(e.target.value)}
-              />
-              <label for="atsistatus">ATSI Status: </label>
-              <input
-                type="text"
-                id="atsistatus"
-                defaultValue={atsistatus}
-                value={atsistatus || ""}
-                onChange={(e) => setatsistatus(e.target.value)}
-              />
-              <label for="medicare">Medicare: </label>
-              <input
-                type="text"
-                id="medicare"
-                defaultValue={medicare}
-                value={medicare || ""}
-                onChange={(e) => setmedicare(e.target.value)}
-              />
-              <label for="medicareex">Medicare Expire: </label>
-              <input
-                type="date"
-                id="medicareex"
-                defaultValue={Moment(medicareex).format("YYYY-MM-DD")}
-                value={Moment(medicareex).format("YYYY-MM-DD") || ""}
-                onChange={(e) => setmedicareex(e.target.value)}
-              />
+                <label for="marritalstatus">Marital status: </label>
+                <input
+                  type="text"
+                  id="marritalstatus"
+                  defaultValue={marritalstatus}
+                  value={marritalstatus || ""}
+                  onChange={(e) => setmarritalstatus(e.target.value)}
+                />
+                <label for="culturalbackground">Cultural Background: </label>
+                <input
+                  type="text"
+                  id="culturalbackground"
+                  defaultValue={culturalbackground}
+                  value={culturalbackground || ""}
+                  onChange={(e) => setculturalbackground(e.target.value)}
+                />
+                <label for="religion">Riligion: </label>
+                <input
+                  type="text"
+                  id="religion"
+                  defaultValue={religion}
+                  value={religion || ""}
+                  onChange={(e) => setreligion(e.target.value)}
+                />
+                <label for="mothertongue">Mother tongue: </label>
+                <input
+                  type="text"
+                  id="mothertongue"
+                  defaultValue={mothertongue}
+                  value={mothertongue || ""}
+                  onChange={(e) => setmothertongue(e.target.value)}
+                />
 
-              <label for="pensionnumber">Pension Number: </label>
-              <input
-                type="text"
-                id="pensionnumber"
-                defaultValue={pensionnumber}
-                value={pensionnumber || ""}
-                onChange={(e) => setpensionnumber(e.target.value)}
-              />
-              <label for="dva">DVA: </label>
-              <input
-                type="text"
-                id="dva"
-                defaultValue={dva}
-                value={dva || ""}
-                onChange={(e) => setdva(e.target.value)}
-              />
-              <label for="dvaex">DVA Expiry Date: </label>
-              <input
-                type="date"
-                id="dvaex"
-                defaultValue={Moment(dvaex).format("YYYY-MM-DD")}
-                value={Moment(dvaex).format("YYYY-MM-DD") || ""}
-                onChange={(e) => setdvaex(e.target.value)}
-              />
-              <label for="healthcarecard">Healthcare Card: </label>
-              <input
-                type="text"
-                id="healthcarecard"
-                defaultValue={healthcarecard}
-                value={healthcarecard || ""}
-                onChange={(e) => sethealthcarecard(e.target.value)}
-              />
-              <label for="healthcarecardex">
-                Healthcare Card Expiry Date:{" "}
-              </label>
-              <input
-                type="date"
-                id="healthcarecardex"
-                defaultValue={Moment(healthcarecardex).format("YYYY-MM-DD")}
-                value={Moment(healthcarecardex).format("YYYY-MM-DD") || ""}
-                onChange={(e) => sethealthcarecardex(e.target.value)}
-              />
-              <label for="dateofadmission">Date of Admission: </label>
-              <input
-                type="date"
-                id="dateofadmission"
-                defaultValue={Moment(dateofadmission).format("YYYY-MM-DD")}
-                value={Moment(dateofadmission).format("YYYY-MM-DD") || ""}
-                onChange={(e) => setdateofadmission(e.target.value)}
-              />
-              <label for="admissionfrom">Admission From: </label>
-              <input
-                type="text"
-                id="admissionfrom"
-                defaultValue={admissionfrom}
-                value={admissionfrom || ""}
-                onChange={(e) => setadmissionfrom(e.target.value)}
-              />
-              <button onClick={updateHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
+                <label for="nationality">Nationality: </label>
+                <input
+                  type="text"
+                  id="nationality"
+                  defaultValue={nationality}
+                  value={nationality || ""}
+                  onChange={(e) => setnationality(e.target.value)}
+                />
+                <label for="atsistatus">ATSI Status: </label>
+                <input
+                  type="text"
+                  id="atsistatus"
+                  defaultValue={atsistatus}
+                  value={atsistatus || ""}
+                  onChange={(e) => setatsistatus(e.target.value)}
+                />
+                <label for="medicare">Medicare: </label>
+                <input
+                  type="text"
+                  id="medicare"
+                  defaultValue={medicare}
+                  value={medicare || ""}
+                  onChange={(e) => setmedicare(e.target.value)}
+                />
+                <label for="medicareex">Medicare Expire: </label>
+                <input
+                  type="date"
+                  id="medicareex"
+                  defaultValue={Moment(medicareex).format("YYYY-MM-DD")}
+                  value={Moment(medicareex).format("YYYY-MM-DD") || ""}
+                  onChange={(e) => setmedicareex(e.target.value)}
+                />
 
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">DIETARY</Navbar.Brand>
-            <Button
-              onClick={() => {
-                setDietaryCollapse(!dietarycollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={dietarycollapse}>
-          <form>
-            <fieldset>
-              <label for="specialdiettype">Special Diet Type: </label>
-              <input
-                type="text"
-                id="specialdiettype"
-                defaultValue={specialdiettype}
-                value={specialdiettype || ""}
-                onChange={(e) => setspecialdiettype(e.target.value)}
-              />
+                <label for="pensionnumber">Pension Number: </label>
+                <input
+                  type="text"
+                  id="pensionnumber"
+                  defaultValue={pensionnumber}
+                  value={pensionnumber || ""}
+                  onChange={(e) => setpensionnumber(e.target.value)}
+                />
+                <label for="dva">DVA: </label>
+                <input
+                  type="text"
+                  id="dva"
+                  defaultValue={dva}
+                  value={dva || ""}
+                  onChange={(e) => setdva(e.target.value)}
+                />
+                <label for="dvaex">DVA Expiry Date: </label>
+                <input
+                  type="date"
+                  id="dvaex"
+                  defaultValue={Moment(dvaex).format("YYYY-MM-DD")}
+                  value={Moment(dvaex).format("YYYY-MM-DD") || ""}
+                  onChange={(e) => setdvaex(e.target.value)}
+                />
+                <label for="healthcarecard">Healthcare Card: </label>
+                <input
+                  type="text"
+                  id="healthcarecard"
+                  defaultValue={healthcarecard}
+                  value={healthcarecard || ""}
+                  onChange={(e) => sethealthcarecard(e.target.value)}
+                />
+                <label for="healthcarecardex">
+                  Healthcare Card Expiry Date:{" "}
+                </label>
+                <input
+                  type="date"
+                  id="healthcarecardex"
+                  defaultValue={Moment(healthcarecardex).format("YYYY-MM-DD")}
+                  value={Moment(healthcarecardex).format("YYYY-MM-DD") || ""}
+                  onChange={(e) => sethealthcarecardex(e.target.value)}
+                />
+                <label for="dateofadmission">Date of Admission: </label>
+                <input
+                  type="date"
+                  id="dateofadmission"
+                  defaultValue={Moment(dateofadmission).format("YYYY-MM-DD")}
+                  value={Moment(dateofadmission).format("YYYY-MM-DD") || ""}
+                  onChange={(e) => setdateofadmission(e.target.value)}
+                />
+                <label for="admissionfrom">Admission From: </label>
+                <input
+                  type="text"
+                  id="admissionfrom"
+                  defaultValue={admissionfrom}
+                  value={admissionfrom || ""}
+                  onChange={(e) => setadmissionfrom(e.target.value)}
+                />
+                <button onClick={updateHandler}>Submit</button>
+              </fieldset>
+            </form>
+          </Collapse>
 
-              <label for="allergies">Allergies: </label>
-              <input
-                type="text"
-                id="allergies"
-                defaultValue={allergies}
-                value={allergies || ""}
-                onChange={(e) => setallergies(e.target.value)}
-              />
-
-              <label for="physicaldeficit">Physical Deficit: </label>
-              <input
-                type="text"
-                id="physicaldeficit"
-                value={
-                  languagebarrier +
-                    "," +
-                    glasses +
-                    "," +
-                    hearingaids +
-                    "," +
-                    dentures || ""
-                }
-              />
-
-              <label for="cognitivedeficit">Cognitive Deficit: </label>
-              <input
-                type="text"
-                id="cognitivedeficit"
-                value={
-                  languagebarrier + "," + confusion + "," + abscondingrisk || ""
-                }
-              />
-
-              <label for="likes">Likes: </label>
-              <input
-                type="text"
-                id="likes"
-                defaultValue={likes}
-                value={likes || ""}
-                onChange={(e) => setlikes(e.target.value)}
-              />
-              <label for="dislikes">Dislikes: </label>
-              <input
-                type="text"
-                id="dislikes"
-                defaultValue={dislikes}
-                value={dislikes || ""}
-                onChange={(e) => setdislikes(e.target.value)}
-              />
-              <label for="sensorydislike">Sensory Dislike: </label>
-              <input
-                type="text"
-                id="sensorydislike"
-                defaultValue={sensorydislike}
-                value={sensorydislike || ""}
-                onChange={(e) => setsensorydislike(e.target.value)}
-              />
-
-              <label for="foodtexture">Food Texture: </label>
-              <input
-                type="text"
-                id="foodtexture"
-                defaultValue={foodtexture}
-                value={foodtexture || ""}
-                onChange={(e) => setfoodtexture(e.target.value)}
-              />
-              <label for="fluidtype">Fluid Type: </label>
-              <input
-                type="text"
-                id="fluidtype"
-                defaultValue={fluidtype}
-                value={fluidtype || ""}
-                onChange={(e) => setfluidtype(e.target.value)}
-              />
-              <label for="eatinggoals">Eating Goals: </label>
-              <input
-                type="text"
-                id="eatinggoals"
-                value={eatinggoals || ""}
-                onChange={(e) => {
-                  seteatinggoals(e.target.value);
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">DIETARY</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  setDietaryCollapse(!dietarycollapse);
                 }}
-              />
-              <label for="drinkinggoals">Drinking Goals: </label>
-              <input
-                type="text"
-                id="drinkinggoals"
-                defaultValue={drinkinggoals}
-                value={drinkinggoals || ""}
-                onChange={(e) => setdrinkinggoals(e.target.value)}
-              />
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={dietarycollapse}>
+            <form>
+              <fieldset>
+                <label for="specialdiettype">Special Diet Type: </label>
+                <input
+                  type="text"
+                  id="specialdiettype"
+                  defaultValue={specialdiettype}
+                  value={specialdiettype || ""}
+                  onChange={(e) => setspecialdiettype(e.target.value)}
+                />
 
-              <label for="personalgoals">Personal Goals: </label>
-              <input
-                type="text"
-                id="personalgoals"
-                defaultValue={personalgoals}
-                value={personalgoals || ""}
-                onChange={(e) => setpersonalgoals(e.target.value)}
-              />
+                <label for="allergies">Allergies: </label>
+                <input
+                  type="text"
+                  id="allergies"
+                  defaultValue={allergies}
+                  value={allergies || ""}
+                  onChange={(e) => setallergies(e.target.value)}
+                />
 
-              <label for="mealsize">Meal Size: </label>
-              <input
-                type="text"
-                id="mealsize"
-                defaultValue={mealsize}
-                value={mealsize || ""}
-                onChange={(e) => setmealsize(e.target.value)}
-              />
-              <label for="staffassistance">Staff Assistance: </label>
-              <input
-                type="text"
-                id="staffassistance"
-                defaultValue={staffassistance}
-                value={staffassistance || ""}
-                onChange={(e) => setstaffassistance(e.target.value)}
-              />
-              <label for="eatingassistancelevel">
-                Eating Assistance Level:{" "}
-              </label>
-              <input
-                type="text"
-                id="eatingassistancelevel"
-                defaultValue={eatingassistancelevel}
-                value={eatingassistancelevel || ""}
-                onChange={(e) => seteatingassistancelevel(e.target.value)}
-              />
-              <label for="safeswallowing">Safe Swallowing: </label>
-              <input
-                type="text"
-                id="safeswallowing"
-                defaultValue={safeswallowing}
-                value={safeswallowing || ""}
-                onChange={(e) => setsafeswallowing(e.target.value)}
-              />
+                <label for="physicaldeficit">Physical Deficit: </label>
+                <input
+                  type="text"
+                  id="physicaldeficit"
+                  value={
+                    languagebarrier +
+                      "," +
+                      glasses +
+                      "," +
+                      hearingaids +
+                      "," +
+                      dentures || ""
+                  }
+                />
 
-              <label for="nonoralfeed">Non Oral Feed: </label>
-              <input
-                type="text"
-                id="nonoralfeed"
-                defaultValue={nonoralfeed}
-                value={nonoralfeed || ""}
-                onChange={(e) => setnonoralfeed(e.target.value)}
-              />
-              <label for="fluidrestriction">Fluid Restriction: </label>
-              <input
-                type="text"
-                id="fluidrestriction"
-                defaultValue={fluidrestriction}
-                value={fluidrestriction || ""}
-                onChange={(e) => setfluidrestriction(e.target.value)}
-              />
-              <label for="nutritionalsupplement">
-                Nutritional Supplement:{" "}
-              </label>
-              <input
-                type="text"
-                id="nutritionalsupplement"
-                defaultValue={nutritionalsupplement}
-                value={nutritionalsupplement || ""}
-                onChange={(e) => setnutritionalsupplement(e.target.value)}
-              />
+                <label for="cognitivedeficit">Cognitive Deficit: </label>
+                <input
+                  type="text"
+                  id="cognitivedeficit"
+                  value={
+                    languagebarrier + "," + confusion + "," + abscondingrisk ||
+                    ""
+                  }
+                />
 
-              <label for="safetyandequipment">Safety And Equipment: </label>
-              <input
-                type="text"
-                id="safetyandequipment"
-                defaultValue={safetyandequipment}
-                value={safetyandequipment || ""}
-                onChange={(e) => setsafetyandequipment(e.target.value)}
-              />
-              <label for="foodrestriction">Food Restriction: </label>
-              <input
-                type="text"
-                id="foodrestriction"
-                defaultValue={foodrestriction}
-                value={foodrestriction || ""}
-                onChange={(e) => setfoodrestriction(e.target.value)}
-              />
-              <label for="breakfastchoice">Breakfast Choice: </label>
-              <input
-                type="text"
-                id="breakfastchoice"
-                defaultValue={breakfastchoice}
-                value={breakfastchoice || ""}
-                onChange={(e) => setbreakfastchoice(e.target.value)}
-              />
-              <button onClick={updateDietaryHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
+                <label for="likes">Likes: </label>
+                <input
+                  type="text"
+                  id="likes"
+                  defaultValue={likes}
+                  value={likes || ""}
+                  onChange={(e) => setlikes(e.target.value)}
+                />
+                <label for="dislikes">Dislikes: </label>
+                <input
+                  type="text"
+                  id="dislikes"
+                  defaultValue={dislikes}
+                  value={dislikes || ""}
+                  onChange={(e) => setdislikes(e.target.value)}
+                />
+                <label for="sensorydislike">Sensory Dislike: </label>
+                <input
+                  type="text"
+                  id="sensorydislike"
+                  defaultValue={sensorydislike}
+                  value={sensorydislike || ""}
+                  onChange={(e) => setsensorydislike(e.target.value)}
+                />
 
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">MOBILITY</Navbar.Brand>
-            <Button
-              onClick={() => {
-                setMobilityCollapse(!mobilitycollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={mobilitycollapse}>
-          <form>
-            <fieldset>
-              <label for="diagnosislist">Diagnosis List: </label>
-              <input
-                type="text"
-                id="diagnosislist"
-                defaultValue={diagnosislist}
-                value={diagnosislist || ""}
-              />
+                <label for="foodtexture">Food Texture: </label>
+                <input
+                  type="text"
+                  id="foodtexture"
+                  defaultValue={foodtexture}
+                  value={foodtexture || ""}
+                  onChange={(e) => setfoodtexture(e.target.value)}
+                />
+                <label for="fluidtype">Fluid Type: </label>
+                <input
+                  type="text"
+                  id="fluidtype"
+                  defaultValue={fluidtype}
+                  value={fluidtype || ""}
+                  onChange={(e) => setfluidtype(e.target.value)}
+                />
+                <label for="eatinggoals">Eating Goals: </label>
+                <input
+                  type="text"
+                  id="eatinggoals"
+                  value={eatinggoals || ""}
+                  onChange={(e) => {
+                    seteatinggoals(e.target.value);
+                  }}
+                />
+                <label for="drinkinggoals">Drinking Goals: </label>
+                <input
+                  type="text"
+                  id="drinkinggoals"
+                  defaultValue={drinkinggoals}
+                  value={drinkinggoals || ""}
+                  onChange={(e) => setdrinkinggoals(e.target.value)}
+                />
 
-              <label for="allergies">Allergies: </label>
-              <input
-                type="text"
-                id="allergies"
-                defaultValue={allergies}
-                value={allergies || ""}
-              />
+                <label for="personalgoals">Personal Goals: </label>
+                <input
+                  type="text"
+                  id="personalgoals"
+                  defaultValue={personalgoals}
+                  value={personalgoals || ""}
+                  onChange={(e) => setpersonalgoals(e.target.value)}
+                />
 
-              <label for="physicaldeficit">Physical Deficit: </label>
-              <input
-                type="text"
-                id="physicaldeficit"
-                value={
-                  languagebarrier +
-                    "," +
-                    glasses +
-                    "," +
-                    hearingaids +
-                    "," +
-                    dentures || ""
-                }
-              />
+                <label for="mealsize">Meal Size: </label>
+                <input
+                  type="text"
+                  id="mealsize"
+                  defaultValue={mealsize}
+                  value={mealsize || ""}
+                  onChange={(e) => setmealsize(e.target.value)}
+                />
+                <label for="staffassistance">Staff Assistance: </label>
+                <input
+                  type="text"
+                  id="staffassistance"
+                  defaultValue={staffassistance}
+                  value={staffassistance || ""}
+                  onChange={(e) => setstaffassistance(e.target.value)}
+                />
+                <label for="eatingassistancelevel">
+                  Eating Assistance Level:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="eatingassistancelevel"
+                  defaultValue={eatingassistancelevel}
+                  value={eatingassistancelevel || ""}
+                  onChange={(e) => seteatingassistancelevel(e.target.value)}
+                />
+                <label for="safeswallowing">Safe Swallowing: </label>
+                <input
+                  type="text"
+                  id="safeswallowing"
+                  defaultValue={safeswallowing}
+                  value={safeswallowing || ""}
+                  onChange={(e) => setsafeswallowing(e.target.value)}
+                />
 
-              <label for="cognitivedeficit">Cognitive Deficit: </label>
-              <input
-                type="text"
-                id="cognitivedeficit"
-                value={
-                  languagebarrier + "," + confusion + "," + abscondingrisk || ""
-                }
-              />
+                <label for="nonoralfeed">Non Oral Feed: </label>
+                <input
+                  type="text"
+                  id="nonoralfeed"
+                  defaultValue={nonoralfeed}
+                  value={nonoralfeed || ""}
+                  onChange={(e) => setnonoralfeed(e.target.value)}
+                />
+                <label for="fluidrestriction">Fluid Restriction: </label>
+                <input
+                  type="text"
+                  id="fluidrestriction"
+                  defaultValue={fluidrestriction}
+                  value={fluidrestriction || ""}
+                  onChange={(e) => setfluidrestriction(e.target.value)}
+                />
+                <label for="nutritionalsupplement">
+                  Nutritional Supplement:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="nutritionalsupplement"
+                  defaultValue={nutritionalsupplement}
+                  value={nutritionalsupplement || ""}
+                  onChange={(e) => setnutritionalsupplement(e.target.value)}
+                />
 
-              <label for="mobilitystatus">Mobility Status: </label>
-              <input
-                type="text"
-                id="mobilitystatus"
-                defaultValue={mobilitystatus}
-                value={mobilitystatus || ""}
-                onChange={(e) => setMobilitystatus(e.target.value)}
-              />
-              <label for="activitystatus">Activity Status: </label>
-              <input
-                type="text"
-                id="activitystatus"
-                defaultValue={activitystatus}
-                value={activitystatus || ""}
-                onChange={(e) => setActivitystatus(e.target.value)}
-              />
-              <label for="gait">Gait: </label>
-              <input
-                type="text"
-                id="gait"
-                defaultValue={gait}
-                value={gait || ""}
-                onChange={(e) => setgait(e.target.value)}
-              />
+                <label for="safetyandequipment">Safety And Equipment: </label>
+                <input
+                  type="text"
+                  id="safetyandequipment"
+                  defaultValue={safetyandequipment}
+                  value={safetyandequipment || ""}
+                  onChange={(e) => setsafetyandequipment(e.target.value)}
+                />
+                <label for="foodrestriction">Food Restriction: </label>
+                <input
+                  type="text"
+                  id="foodrestriction"
+                  defaultValue={foodrestriction}
+                  value={foodrestriction || ""}
+                  onChange={(e) => setfoodrestriction(e.target.value)}
+                />
+                <label for="breakfastchoice">Breakfast Choice: </label>
+                <input
+                  type="text"
+                  id="breakfastchoice"
+                  defaultValue={breakfastchoice}
+                  value={breakfastchoice || ""}
+                  onChange={(e) => setbreakfastchoice(e.target.value)}
+                />
+                <button onClick={(e)=>updateDietaryHandler(e)}>Submit</button>
+                <button onClick={(e) => pdfGeneratorHandler(e)}>
+                  Generate PDF
+                </button>
+              </fieldset>
+              <div id="DietaryPDF">
+                <table id="abc">
+                  <tr>
+                    <th>Nursing Diagnosis (Identified Needs/Problems)</th>
+                    <th>Goals/Expected Outcome/s</th>
+                    <th>Interventions/Actions</th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Related Diagnosis:</b> something<br/>
+                      <b>Allergies:</b> {allergies}<br/>
+                      <b>Physical Deficits:</b>Language Barrier:
+                      {languagebarrier}, Glasses:{glasses}, Hearing Aids:
+                      {hearingaids}
+                      <b>Cognitive Deficits:</b>Language Barrier:
+                      {languagebarrier}, Consufion:{confusion}, Absconding Risk:
+                      {abscondingrisk}
+                      <b>Food/Drink Likes:</b> {likes}
+                      <b>Food/Drink Dislikes:</b> {dislikes}
+                      <b>Sensory Dislikes:</b>
+                      {sensorydislike}
+                      <b>Breakfast Choice:</b> {breakfastchoice}I would like to
+                      enjoy my meals without any concerns.
+                    </td>
+                    <td>
+                      I am treated with dignity and respect and can maintain my
+                      identity. I can make informed choices about my care and
+                      services and live the life I choose. I would like to enjoy
+                      my meals without any concerns. I receive personal care
+                      that is safe and right for me. I feel a sense of belonging
+                      and I am safe and comfortable in the environment I live
+                      in. To provide best practice care outcomes appropriate for
+                      my care needs and preferences. I want staff to give me
+                      independence in choosing food I want to have hot meal
+                      <b>Eating Goals:</b>
+                      {eatinggoals}
+                      <b>Drinking Goals:</b>
+                      {drinkinggoals}
+                      <b>Personal Goals:</b>
+                      {personalgoals}
+                    </td>
+                    <td>
+                      I am a partner in ongoing assessment and planning that
+                      helps me get the care and services I need for my health
+                      and well-being. I get the services and support for daily
+                      living that are important for my health and well-being and
+                      that enables me to do the things I want to do whilst
+                      maintaining independence where possible. I require the
+                      following support and assistance for Swallowing
+                      Difficulties.
+                      <b>Food texture:</b>
+                      {foodtexture}
+                      <b>Fluid type:</b>
+                      {fluidtype}
+                      <b>Meal size:</b>
+                      {mealsize}
+                      <b>staff assistance:</b>
+                      {staffassistance}
+                      <b>eating assistance level:</b>
+                      {eatingassistancelevel}
+                      <b>safe swallowing:</b>
+                      {safeswallowing}
+                      <b>safety and equipment:</b>
+                      {safetyandequipment}
+                      <b>non-oral feed:</b>
+                      {nonoralfeed}
+                      <b>nutritional supplement:</b>
+                      {nutritionalsupplement}
+                      <b>fluid restriction:</b>
+                      {fluidrestriction}
+                      <b>Food restriction:</b>
+                      {foodrestriction}
+                      Ensure correct sitting position & comfort Ensure food is
+                      served attractively Orientate at meal-times Ensure
+                      pleasant environment Consider comfort, dignity and privacy
+                      Weigh regularly as per weight chart Ensure food choices
+                      respected Encourage family to attend catering meeting each
+                      month or express their needs at the resident/relative
+                      meeting each monthly Report changes in eating ability and
+                      nutritional status to dietician, RN, LMO Give meals in
+                      stages (e.g. soup, main meal) Communicate care needs to{" "}
+                      <b>{text}</b> and family
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </form>
+          </Collapse>
 
-              <label for="balance">Balance: </label>
-              <input
-                type="text"
-                id="balance"
-                defaultValue={balance}
-                value={balance || ""}
-                onChange={(e) => setbalance(e.target.value)}
-              />
-              <label for="posture">Posture: </label>
-              <input
-                type="text"
-                id="posture"
-                defaultValue={posture}
-                value={posture || ""}
-                onChange={(e) => setposture(e.target.value)}
-              />
-              <label for="mentalstatus">Mental Status: </label>
-              <input
-                type="text"
-                id="mentalstatus"
-                value={mentalstatus || ""}
-                onChange={(e) => {
-                  setmentalstatus(e.target.value);
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">MOBILITY</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  setMobilityCollapse(!mobilitycollapse);
                 }}
-              />
-              <label for="factoraffectsmobility">
-                Factor Affects Mobility:{" "}
-              </label>
-              <input
-                type="text"
-                id="factoraffectsmobility"
-                defaultValue={factoraffectsmobility}
-                value={factoraffectsmobility || ""}
-                onChange={(e) => setfactoraffectsmobility(e.target.value)}
-              />
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={mobilitycollapse}>
+            <form>
+              <fieldset>
+                <label for="diagnosislist">Diagnosis List: </label>
+                <input
+                  type="text"
+                  id="diagnosislist"
+                  defaultValue={diagnosislist}
+                  value={diagnosislist || ""}
+                />
 
-              <label for="personalgoalsmobility">Personal Goals: </label>
-              <input
-                type="text"
-                id="personalgoalsmobility"
-                defaultValue={personalgoalsmobility}
-                value={personalgoalsmobility || ""}
-                onChange={(e) => setpersonalgoalsmobility(e.target.value)}
-              />
+                <label for="allergies">Allergies: </label>
+                <input
+                  type="text"
+                  id="allergies"
+                  defaultValue={allergies}
+                  value={allergies || ""}
+                />
 
-              <label for="transfergoals">Transfer Goals: </label>
-              <input
-                type="text"
-                id="transfergoals"
-                defaultValue={transfergoals}
-                value={transfergoals || ""}
-                onChange={(e) => settransfergoals(e.target.value)}
-              />
-              <label for="staffassistancemobility">Staff Assistance: </label>
-              <input
-                type="text"
-                id="staffassistancemobility"
-                defaultValue={staffassistancemobility}
-                value={staffassistancemobility || ""}
-                onChange={(e) => setstaffassistancemobility(e.target.value)}
-              />
-              <label for="transferaids">Transfer Aids: </label>
-              <input
-                type="text"
-                id="transferaids"
-                defaultValue={transferaids}
-                value={transferaids || ""}
-                onChange={(e) => settransferaids(e.target.value)}
-              />
-              <label for="rugbedmobility">RUG: Bed Mobility: </label>
-              <input
-                type="text"
-                id="rugbedmobility"
-                defaultValue={rugbedmobility}
-                value={rugbedmobility || ""}
-                onChange={(e) => setrugbedmobility(e.target.value)}
-              />
+                <label for="physicaldeficit">Physical Deficit: </label>
+                <input
+                  type="text"
+                  id="physicaldeficit"
+                  value={
+                    languagebarrier +
+                      "," +
+                      glasses +
+                      "," +
+                      hearingaids +
+                      "," +
+                      dentures || ""
+                  }
+                />
 
-              <label for="rugtransferassistance">
-                RUG: Transfer Assistance:{" "}
-              </label>
-              <input
-                type="text"
-                id="rugtransferassistance"
-                defaultValue={rugtransferassistance}
-                value={rugtransferassistance || ""}
-                onChange={(e) => setrugtransferassistance(e.target.value)}
-              />
+                <label for="cognitivedeficit">Cognitive Deficit: </label>
+                <input
+                  type="text"
+                  id="cognitivedeficit"
+                  value={
+                    languagebarrier + "," + confusion + "," + abscondingrisk ||
+                    ""
+                  }
+                />
 
-              <label for="rockwoodfrailtyscore">RUG: Frality: </label>
-              <input
-                type="text"
-                id="rockwoodfrailtyscore"
-                defaultValue={rockwoodfrailtyscore}
-                value={rockwoodfrailtyscore || ""}
-                onChange={(e) => setrockwoodfrailtyscore(e.target.value)}
-              />
-              <label for="transfertobedchairwc">
-                Transfer To Bed Chair Wc:{" "}
-              </label>
-              <input
-                type="text"
-                id="transfertobedchairwc"
-                defaultValue={transfertobedchairwc}
-                value={transfertobedchairwc || ""}
-                onChange={(e) => settransfertobedchairwc(e.target.value)}
-              />
-              <label for="locomotionwalkwc">Locomotion: </label>
-              <input
-                type="text"
-                id="locomotionwalkwc"
-                defaultValue={locomotionwalkwc}
-                value={locomotionwalkwc || ""}
-                onChange={(e) => setlocomotionwalkwc(e.target.value)}
-              />
+                <label for="mobilitystatus">Mobility Status: </label>
+                <input
+                  type="text"
+                  id="mobilitystatus"
+                  defaultValue={mobilitystatus}
+                  value={mobilitystatus || ""}
+                  onChange={(e) => setMobilitystatus(e.target.value)}
+                />
+                <label for="activitystatus">Activity Status: </label>
+                <input
+                  type="text"
+                  id="activitystatus"
+                  defaultValue={activitystatus}
+                  value={activitystatus || ""}
+                  onChange={(e) => setActivitystatus(e.target.value)}
+                />
+                <label for="gait">Gait: </label>
+                <input
+                  type="text"
+                  id="gait"
+                  defaultValue={gait}
+                  value={gait || ""}
+                  onChange={(e) => setgait(e.target.value)}
+                />
 
-              <label for="fallsprevention">Falls Prevention: </label>
-              <input
-                type="text"
-                id="fallsprevention"
-                defaultValue={fallsprevention}
-                value={fallsprevention || ""}
-                onChange={(e) => setfallsprevention(e.target.value)}
-              />
-              <button onClick={updateMobilityHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
+                <label for="balance">Balance: </label>
+                <input
+                  type="text"
+                  id="balance"
+                  defaultValue={balance}
+                  value={balance || ""}
+                  onChange={(e) => setbalance(e.target.value)}
+                />
+                <label for="posture">Posture: </label>
+                <input
+                  type="text"
+                  id="posture"
+                  defaultValue={posture}
+                  value={posture || ""}
+                  onChange={(e) => setposture(e.target.value)}
+                />
+                <label for="mentalstatus">Mental Status: </label>
+                <input
+                  type="text"
+                  id="mentalstatus"
+                  value={mentalstatus || ""}
+                  onChange={(e) => {
+                    setmentalstatus(e.target.value);
+                  }}
+                />
+                <label for="factoraffectsmobility">
+                  Factor Affects Mobility:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="factoraffectsmobility"
+                  defaultValue={factoraffectsmobility}
+                  value={factoraffectsmobility || ""}
+                  onChange={(e) => setfactoraffectsmobility(e.target.value)}
+                />
 
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">PERSONAL HYGINE</Navbar.Brand>
-            <Button
-              onClick={() => {
-                setHygineCollapse(!hyginecollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={hyginecollapse}>
-          <form>
-            <fieldset>
-              <label for="diagnosislist">Diagnosis List: </label>
-              <input
-                type="text"
-                id="diagnosislist"
-                defaultValue={diagnosislist}
-                value={diagnosislist || ""}
-              />
+                <label for="personalgoalsmobility">Personal Goals: </label>
+                <input
+                  type="text"
+                  id="personalgoalsmobility"
+                  defaultValue={personalgoalsmobility}
+                  value={personalgoalsmobility || ""}
+                  onChange={(e) => setpersonalgoalsmobility(e.target.value)}
+                />
 
-              <label for="allergies">Allergies: </label>
-              <input
-                type="text"
-                id="allergies"
-                defaultValue={allergies}
-                value={allergies || ""}
-              />
+                <label for="transfergoals">Transfer Goals: </label>
+                <input
+                  type="text"
+                  id="transfergoals"
+                  defaultValue={transfergoals}
+                  value={transfergoals || ""}
+                  onChange={(e) => settransfergoals(e.target.value)}
+                />
+                <label for="staffassistancemobility">Staff Assistance: </label>
+                <input
+                  type="text"
+                  id="staffassistancemobility"
+                  defaultValue={staffassistancemobility}
+                  value={staffassistancemobility || ""}
+                  onChange={(e) => setstaffassistancemobility(e.target.value)}
+                />
+                <label for="transferaids">Transfer Aids: </label>
+                <input
+                  type="text"
+                  id="transferaids"
+                  defaultValue={transferaids}
+                  value={transferaids || ""}
+                  onChange={(e) => settransferaids(e.target.value)}
+                />
+                <label for="rugbedmobility">RUG: Bed Mobility: </label>
+                <input
+                  type="text"
+                  id="rugbedmobility"
+                  defaultValue={rugbedmobility}
+                  value={rugbedmobility || ""}
+                  onChange={(e) => setrugbedmobility(e.target.value)}
+                />
 
-              <label for="physicaldeficit">Physical Deficit: </label>
-              <input
-                type="text"
-                id="physicaldeficit"
-                value={
-                  languagebarrier +
-                    "," +
-                    glasses +
-                    "," +
-                    hearingaids +
-                    "," +
-                    dentures || ""
-                }
-              />
+                <label for="rugtransferassistance">
+                  RUG: Transfer Assistance:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="rugtransferassistance"
+                  defaultValue={rugtransferassistance}
+                  value={rugtransferassistance || ""}
+                  onChange={(e) => setrugtransferassistance(e.target.value)}
+                />
 
-              <label for="cognitivedeficit">Cognitive Deficit: </label>
-              <input
-                type="text"
-                id="cognitivedeficit"
-                value={
-                  languagebarrier + "," + confusion + "," + abscondingrisk || ""
-                }
-              />
+                <label for="rockwoodfrailtyscore">RUG: Frality: </label>
+                <input
+                  type="text"
+                  id="rockwoodfrailtyscore"
+                  defaultValue={rockwoodfrailtyscore}
+                  value={rockwoodfrailtyscore || ""}
+                  onChange={(e) => setrockwoodfrailtyscore(e.target.value)}
+                />
+                <label for="transfertobedchairwc">
+                  Transfer To Bed Chair Wc:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="transfertobedchairwc"
+                  defaultValue={transfertobedchairwc}
+                  value={transfertobedchairwc || ""}
+                  onChange={(e) => settransfertobedchairwc(e.target.value)}
+                />
+                <label for="locomotionwalkwc">Locomotion: </label>
+                <input
+                  type="text"
+                  id="locomotionwalkwc"
+                  defaultValue={locomotionwalkwc}
+                  value={locomotionwalkwc || ""}
+                  onChange={(e) => setlocomotionwalkwc(e.target.value)}
+                />
 
-              <label for="hyginegoal">Hygine Goals: </label>
-              <input
-                type="text"
-                id="hyginegoal"
-                defaultValue={hyginegoal}
-                value={hyginegoal || ""}
-                onChange={(e) => sethyginegoal(e.target.value)}
-              />
-              <label for="groomingassistance">Grooming Assistance: </label>
-              <input
-                type="text"
-                id="groomingassistance"
-                defaultValue={groomingassistance}
-                value={groomingassistance || ""}
-                onChange={(e) => setgroomingassistance(e.target.value)}
-              />
-              <label for="bathingassistance">Bathing Assistance: </label>
-              <input
-                type="text"
-                id="bathingassistance"
-                defaultValue={bathingassistance}
-                value={bathingassistance || ""}
-                onChange={(e) => setbathingassistance(e.target.value)}
-              />
+                <label for="fallsprevention">Falls Prevention: </label>
+                <input
+                  type="text"
+                  id="fallsprevention"
+                  defaultValue={fallsprevention}
+                  value={fallsprevention || ""}
+                  onChange={(e) => setfallsprevention(e.target.value)}
+                />
+                <button onClick={updateMobilityHandler}>Submit</button>
+              </fieldset>
+            </form>
+          </Collapse>
 
-              <label for="dressingupperbody">Dressing Upper Body: </label>
-              <input
-                type="text"
-                id="dressingupperbody"
-                defaultValue={dressingupperbody}
-                value={dressingupperbody || ""}
-                onChange={(e) => setdressingupperbody(e.target.value)}
-              />
-              <label for="dressinglowerbody">Dressing Lower Body: </label>
-              <input
-                type="text"
-                id="dressinglowerbody"
-                defaultValue={dressinglowerbody}
-                value={dressinglowerbody || ""}
-                onChange={(e) => setdressinglowerbody(e.target.value)}
-              />
-              <label for="hyginemode">Hygine Mode: </label>
-              <input
-                type="text"
-                id="hyginemode"
-                value={hyginemode || ""}
-                onChange={(e) => {
-                  sethyginemode(e.target.value);
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">PERSONAL HYGINE</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  setHygineCollapse(!hyginecollapse);
                 }}
-              />
-              <label for="hyginefrequency">Hygine Frequency:</label>
-              <input
-                type="text"
-                id="hyginefrequency"
-                defaultValue={hyginefrequency}
-                value={hyginefrequency || ""}
-                onChange={(e) => sethyginefrequency(e.target.value)}
-              />
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={hyginecollapse}>
+            <form>
+              <fieldset>
+                <label for="diagnosislist">Diagnosis List: </label>
+                <input
+                  type="text"
+                  id="diagnosislist"
+                  defaultValue={diagnosislist}
+                  value={diagnosislist || ""}
+                />
 
-              <label for="personalgoalshygiene">Personal Goals: </label>
-              <input
-                type="text"
-                id="personalgoalshygiene"
-                defaultValue={personalgoalshygiene}
-                value={personalgoalshygiene || ""}
-                onChange={(e) => setpersonalgoalshygiene(e.target.value)}
-              />
+                <label for="allergies">Allergies: </label>
+                <input
+                  type="text"
+                  id="allergies"
+                  defaultValue={allergies}
+                  value={allergies || ""}
+                />
 
-              <label for="assistancerequiredwith">
-                Assistance Required With:{" "}
-              </label>
-              <input
-                type="text"
-                id="assistancerequiredwith"
-                defaultValue={assistancerequiredwith}
-                value={assistancerequiredwith || ""}
-                onChange={(e) => setassistancerequiredwith(e.target.value)}
-              />
-              <label for="staffassistancehygine">Staff Assistance: </label>
-              <input
-                type="text"
-                id="staffassistancehygine"
-                defaultValue={staffassistancehygine}
-                value={staffassistancehygine || ""}
-                onChange={(e) => setstaffassistancehygine(e.target.value)}
-              />
-              <label for="toenails">Toe Nails By: </label>
-              <input
-                type="text"
-                id="toenails"
-                defaultValue={toenails}
-                value={toenails || ""}
-                onChange={(e) => settoenails(e.target.value)}
-              />
-              <label for="haircutby">Haircut By: </label>
-              <input
-                type="text"
-                id="haircutby"
-                defaultValue={haircutby}
-                value={haircutby || ""}
-                onChange={(e) => sethaircutby(e.target.value)}
-              />
+                <label for="physicaldeficit">Physical Deficit: </label>
+                <input
+                  type="text"
+                  id="physicaldeficit"
+                  value={
+                    languagebarrier +
+                      "," +
+                      glasses +
+                      "," +
+                      hearingaids +
+                      "," +
+                      dentures || ""
+                  }
+                />
 
-              <label for="assistacewithcommunicationaids">
-                Assistace With Communication Aids:{" "}
-              </label>
-              <input
-                type="text"
-                id="assistacewithcommunicationaids"
-                defaultValue={assistacewithcommunicationaids}
-                value={assistacewithcommunicationaids || ""}
-                onChange={(e) =>
-                  setassistacewithcommunicationaids(e.target.value)
-                }
-              />
-              <button onClick={updateHygineHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
-        
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">TOILETING</Navbar.Brand>
-            <Button
-              onClick={() => {
-                settoiletingCollapse(!toiletingcollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={toiletingcollapse}>
-          <form>
-            <fieldset>
-              <label for="diagnosislist">Diagnosis List: </label>
-              <input
-                type="text"
-                id="diagnosislist"
-                defaultValue={diagnosislist}
-                value={diagnosislist || ""}
-              />
+                <label for="cognitivedeficit">Cognitive Deficit: </label>
+                <input
+                  type="text"
+                  id="cognitivedeficit"
+                  value={
+                    languagebarrier + "," + confusion + "," + abscondingrisk ||
+                    ""
+                  }
+                />
 
-              <label for="allergies">Allergies: </label>
-              <input
-                type="text"
-                id="allergies"
-                defaultValue={allergies}
-                value={allergies || ""}
-              />
+                <label for="hyginegoal">Hygine Goals: </label>
+                <input
+                  type="text"
+                  id="hyginegoal"
+                  defaultValue={hyginegoal}
+                  value={hyginegoal || ""}
+                  onChange={(e) => sethyginegoal(e.target.value)}
+                />
+                <label for="groomingassistance">Grooming Assistance: </label>
+                <input
+                  type="text"
+                  id="groomingassistance"
+                  defaultValue={groomingassistance}
+                  value={groomingassistance || ""}
+                  onChange={(e) => setgroomingassistance(e.target.value)}
+                />
+                <label for="bathingassistance">Bathing Assistance: </label>
+                <input
+                  type="text"
+                  id="bathingassistance"
+                  defaultValue={bathingassistance}
+                  value={bathingassistance || ""}
+                  onChange={(e) => setbathingassistance(e.target.value)}
+                />
 
-              <label for="physicaldeficit">Physical Deficit: </label>
-              <input
-                type="text"
-                id="physicaldeficit"
-                value={
-                  languagebarrier +
-                    "," +
-                    glasses +
-                    "," +
-                    hearingaids +
-                    "," +
-                    dentures || ""
-                }
-              />
+                <label for="dressingupperbody">Dressing Upper Body: </label>
+                <input
+                  type="text"
+                  id="dressingupperbody"
+                  defaultValue={dressingupperbody}
+                  value={dressingupperbody || ""}
+                  onChange={(e) => setdressingupperbody(e.target.value)}
+                />
+                <label for="dressinglowerbody">Dressing Lower Body: </label>
+                <input
+                  type="text"
+                  id="dressinglowerbody"
+                  defaultValue={dressinglowerbody}
+                  value={dressinglowerbody || ""}
+                  onChange={(e) => setdressinglowerbody(e.target.value)}
+                />
+                <label for="hyginemode">Hygine Mode: </label>
+                <input
+                  type="text"
+                  id="hyginemode"
+                  value={hyginemode || ""}
+                  onChange={(e) => {
+                    sethyginemode(e.target.value);
+                  }}
+                />
+                <label for="hyginefrequency">Hygine Frequency:</label>
+                <input
+                  type="text"
+                  id="hyginefrequency"
+                  defaultValue={hyginefrequency}
+                  value={hyginefrequency || ""}
+                  onChange={(e) => sethyginefrequency(e.target.value)}
+                />
 
-              <label for="cognitivedeficit">Cognitive Deficit: </label>
-              <input
-                type="text"
-                id="cognitivedeficit"
-                value={
-                  languagebarrier + "," + confusion + "," + abscondingrisk || ""
-                }
-              />
+                <label for="personalgoalshygiene">Personal Goals: </label>
+                <input
+                  type="text"
+                  id="personalgoalshygiene"
+                  defaultValue={personalgoalshygiene}
+                  value={personalgoalshygiene || ""}
+                  onChange={(e) => setpersonalgoalshygiene(e.target.value)}
+                />
 
-              <label for="toiletinggoal">Toileting Goals: </label>
-              <input
-                type="text"
-                id="toiletinggoal"
-                defaultValue={toiletinggoal}
-                value={toiletinggoal || ""}
-                onChange={(e) => settoiletinggoal(e.target.value)}
-              />
-              <label for="">Toileting Assistance: </label>
-              <input
-                type="text"
-                id="toiletingassistance"
-                defaultValue={toiletingassistance}
-                value={toiletingassistance || ""}
-                onChange={(e) => settoiletingassistance(e.target.value)}
-              />
-              <label for="typeoftoilet">Type of Toilet: </label>
-              <input
-                type="text"
-                id="typeoftoilet"
-                defaultValue={typeoftoilet}
-                value={typeoftoilet || ""}
-                onChange={(e) => settypeoftoilet(e.target.value)}
-              />
+                <label for="assistancerequiredwith">
+                  Assistance Required With:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="assistancerequiredwith"
+                  defaultValue={assistancerequiredwith}
+                  value={assistancerequiredwith || ""}
+                  onChange={(e) => setassistancerequiredwith(e.target.value)}
+                />
+                <label for="staffassistancehygine">Staff Assistance: </label>
+                <input
+                  type="text"
+                  id="staffassistancehygine"
+                  defaultValue={staffassistancehygine}
+                  value={staffassistancehygine || ""}
+                  onChange={(e) => setstaffassistancehygine(e.target.value)}
+                />
+                <label for="toenails">Toe Nails By: </label>
+                <input
+                  type="text"
+                  id="toenails"
+                  defaultValue={toenails}
+                  value={toenails || ""}
+                  onChange={(e) => settoenails(e.target.value)}
+                />
+                <label for="haircutby">Haircut By: </label>
+                <input
+                  type="text"
+                  id="haircutby"
+                  defaultValue={haircutby}
+                  value={haircutby || ""}
+                  onChange={(e) => sethaircutby(e.target.value)}
+                />
 
-              <label for="sphinctercontrol">Sphincter Control: </label>
-              <input
-                type="text"
-                id="sphinctercontrol"
-                defaultValue={sphinctercontrol}
-                value={sphinctercontrol || ""}
-                onChange={(e) => setsphinctercontrol(e.target.value)}
-              />
-              <label for="bladdercontrol">Bladder Control: </label>
-              <input
-                type="text"
-                id="bladdercontrol"
-                defaultValue={bladdercontrol}
-                value={bladdercontrol || ""}
-                onChange={(e) => setbladdercontrol(e.target.value)}
-              />
-              <label for="bowelmanagement">Bowel Management: </label>
-              <input
-                type="text"
-                id="bowelmanagement"
-                value={bowelmanagement || ""}
-                onChange={(e) => {
-                  setbowelmanagement(e.target.value);
+                <label for="assistacewithcommunicationaids">
+                  Assistace With Communication Aids:{" "}
+                </label>
+                <input
+                  type="text"
+                  id="assistacewithcommunicationaids"
+                  defaultValue={assistacewithcommunicationaids}
+                  value={assistacewithcommunicationaids || ""}
+                  onChange={(e) =>
+                    setassistacewithcommunicationaids(e.target.value)
+                  }
+                />
+                <button onClick={updateHygineHandler}>Submit</button>
+              </fieldset>
+            </form>
+          </Collapse>
+
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">TOILETING</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  settoiletingCollapse(!toiletingcollapse);
                 }}
-              />
-              <label for="toiletingactivitiesassistance">Toileting Activities Assistance:</label>
-              <input
-                type="text"
-                id="toiletingactivitiesassistance"
-                defaultValue={toiletingactivitiesassistance}
-                value={toiletingactivitiesassistance || ""}
-                onChange={(e) => settoiletingactivitiesassistance(e.target.value)}
-              />
-              <button onClick={updateToiletingHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={toiletingcollapse}>
+            <form>
+              <fieldset>
+                <label for="diagnosislist">Diagnosis List: </label>
+                <input
+                  type="text"
+                  id="diagnosislist"
+                  defaultValue={diagnosislist}
+                  value={diagnosislist || ""}
+                />
 
+                <label for="allergies">Allergies: </label>
+                <input
+                  type="text"
+                  id="allergies"
+                  defaultValue={allergies}
+                  value={allergies || ""}
+                />
 
-        <Navbar bg="primary" variant="dark" expand="lg">
-          <Container>
-            <Navbar.Brand href="#home">CONTINENCE</Navbar.Brand>
-            <Button
-              onClick={() => {
-                setcontinencecollapse(!continencecollapse);
-              }}
-            >
-              EXPAND
-            </Button>
-          </Container>
-        </Navbar>
-        <Collapse in={continencecollapse}>
-          <form>
-            <fieldset>
-              <label for="diagnosislist">Diagnosis List: </label>
-              <input
-                type="text"
-                id="diagnosislist"
-                defaultValue={diagnosislist}
-                value={diagnosislist || ""}
-              />
+                <label for="physicaldeficit">Physical Deficit: </label>
+                <input
+                  type="text"
+                  id="physicaldeficit"
+                  value={
+                    languagebarrier +
+                      "," +
+                      glasses +
+                      "," +
+                      hearingaids +
+                      "," +
+                      dentures || ""
+                  }
+                />
 
-              <label for="allergies">Allergies: </label>
-              <input
-                type="text"
-                id="allergies"
-                defaultValue={allergies}
-                value={allergies || ""}
-              />
+                <label for="cognitivedeficit">Cognitive Deficit: </label>
+                <input
+                  type="text"
+                  id="cognitivedeficit"
+                  value={
+                    languagebarrier + "," + confusion + "," + abscondingrisk ||
+                    ""
+                  }
+                />
 
-              <label for="physicaldeficit">Physical Deficit: </label>
-              <input
-                type="text"
-                id="physicaldeficit"
-                value={
-                  languagebarrier +
-                    "," +
-                    glasses +
-                    "," +
-                    hearingaids +
-                    "," +
-                    dentures || ""
-                }
-              />
+                <label for="toiletinggoal">Toileting Goals: </label>
+                <input
+                  type="text"
+                  id="toiletinggoal"
+                  defaultValue={toiletinggoal}
+                  value={toiletinggoal || ""}
+                  onChange={(e) => settoiletinggoal(e.target.value)}
+                />
+                <label for="">Toileting Assistance: </label>
+                <input
+                  type="text"
+                  id="toiletingassistance"
+                  defaultValue={toiletingassistance}
+                  value={toiletingassistance || ""}
+                  onChange={(e) => settoiletingassistance(e.target.value)}
+                />
+                <label for="typeoftoilet">Type of Toilet: </label>
+                <input
+                  type="text"
+                  id="typeoftoilet"
+                  defaultValue={typeoftoilet}
+                  value={typeoftoilet || ""}
+                  onChange={(e) => settypeoftoilet(e.target.value)}
+                />
 
-              <label for="cognitivedeficit">Cognitive Deficit: </label>
-              <input
-                type="text"
-                id="cognitivedeficit"
-                value={
-                  languagebarrier + "," + confusion + "," + abscondingrisk || ""
-                }
-              />
+                <label for="sphinctercontrol">Sphincter Control: </label>
+                <input
+                  type="text"
+                  id="sphinctercontrol"
+                  defaultValue={sphinctercontrol}
+                  value={sphinctercontrol || ""}
+                  onChange={(e) => setsphinctercontrol(e.target.value)}
+                />
+                <label for="bladdercontrol">Bladder Control: </label>
+                <input
+                  type="text"
+                  id="bladdercontrol"
+                  defaultValue={bladdercontrol}
+                  value={bladdercontrol || ""}
+                  onChange={(e) => setbladdercontrol(e.target.value)}
+                />
+                <label for="bowelmanagement">Bowel Management: </label>
+                <input
+                  type="text"
+                  id="bowelmanagement"
+                  value={bowelmanagement || ""}
+                  onChange={(e) => {
+                    setbowelmanagement(e.target.value);
+                  }}
+                />
+                <label for="toiletingactivitiesassistance">
+                  Toileting Activities Assistance:
+                </label>
+                <input
+                  type="text"
+                  id="toiletingactivitiesassistance"
+                  defaultValue={toiletingactivitiesassistance}
+                  value={toiletingactivitiesassistance || ""}
+                  onChange={(e) =>
+                    settoiletingactivitiesassistance(e.target.value)
+                  }
+                />
+                <button onClick={updateToiletingHandler}>Submit</button>
+              </fieldset>
+            </form>
+          </Collapse>
 
-              <label for="continence">Continence: </label>
-              <input
-                type="text"
-                id="continence"
-                defaultValue={continence}
-                value={continence || ""}
-                onChange={(e) => setcontinence(e.target.value)}
-              />
-              <label for="continencegoals">Continence Goals: </label>
-              <input
-                type="text"
-                id="continencegoals"
-                defaultValue={continencegoals}
-                value={continencegoals || ""}
-                onChange={(e) => setcontinencegoals(e.target.value)}
-              />
-              <label for="bowelhealthgoals">Bowel Health Goals: </label>
-              <input
-                type="text"
-                id="bowelhealthgoals"
-                defaultValue={bowelhealthgoals}
-                value={bowelhealthgoals || ""}
-                onChange={(e) => setbowelhealthgoals(e.target.value)}
-              />
+          <Navbar bg="primary" variant="dark" expand="lg">
+            <Container>
+              <Navbar.Brand href="#home">CONTINENCE</Navbar.Brand>
+              <Button
+                onClick={() => {
+                  setcontinencecollapse(!continencecollapse);
+                }}
+              >
+                EXPAND
+              </Button>
+            </Container>
+          </Navbar>
+          <Collapse in={continencecollapse}>
+            <form>
+              <fieldset>
+                <label for="diagnosislist">Diagnosis List: </label>
+                <input
+                  type="text"
+                  id="diagnosislist"
+                  defaultValue={diagnosislist}
+                  value={diagnosislist || ""}
+                />
 
-              <label for="bladderhealthgoals">Bladder Health Goals: </label>
-              <input
-                type="text"
-                id="bladderhealthgoals"
-                defaultValue={bladderhealthgoals}
-                value={bladderhealthgoals || ""}
-                onChange={(e) => setbladderhealthgoals(e.target.value)}
-              />
-              <label for="toiletingschedule">Toileting Schedule: </label>
-              <input
-                type="text"
-                id="toiletingschedule"
-                defaultValue={toiletingschedule}
-                value={toiletingschedule || ""}
-                onChange={(e) => settoiletingschedule(e.target.value)}
-              />
-              <label for="continenceaids">Continence Aids: </label>
-              <input
-                type="text"
-                id="continenceaids"
-                value={continenceaids || ""}
-              />
-              <button onClick={updateContinenceHandler}>Submit</button>
-            </fieldset>
-          </form>
-        </Collapse>
+                <label for="allergies">Allergies: </label>
+                <input
+                  type="text"
+                  id="allergies"
+                  defaultValue={allergies}
+                  value={allergies || ""}
+                />
 
-        <Button onClick={(e) => setPageSwitch(true)}>BACK</Button>
-        <Button onClick={(e) => setShowCharts(true)}>Charts</Button>
-      </div>
-    );}
-    else{
-      return(
-        <div>
-          <Charts Resident_ID={residentid} setShowCharts={setShowCharts} ShowCharts={ShowCharts}></Charts>
+                <label for="physicaldeficit">Physical Deficit: </label>
+                <input
+                  type="text"
+                  id="physicaldeficit"
+                  value={
+                    languagebarrier +
+                      "," +
+                      glasses +
+                      "," +
+                      hearingaids +
+                      "," +
+                      dentures || ""
+                  }
+                />
+
+                <label for="cognitivedeficit">Cognitive Deficit: </label>
+                <input
+                  type="text"
+                  id="cognitivedeficit"
+                  value={
+                    languagebarrier + "," + confusion + "," + abscondingrisk ||
+                    ""
+                  }
+                />
+
+                <label for="continence">Continence: </label>
+                <input
+                  type="text"
+                  id="continence"
+                  defaultValue={continence}
+                  value={continence || ""}
+                  onChange={(e) => setcontinence(e.target.value)}
+                />
+                <label for="continencegoals">Continence Goals: </label>
+                <input
+                  type="text"
+                  id="continencegoals"
+                  defaultValue={continencegoals}
+                  value={continencegoals || ""}
+                  onChange={(e) => setcontinencegoals(e.target.value)}
+                />
+                <label for="bowelhealthgoals">Bowel Health Goals: </label>
+                <input
+                  type="text"
+                  id="bowelhealthgoals"
+                  defaultValue={bowelhealthgoals}
+                  value={bowelhealthgoals || ""}
+                  onChange={(e) => setbowelhealthgoals(e.target.value)}
+                />
+
+                <label for="bladderhealthgoals">Bladder Health Goals: </label>
+                <input
+                  type="text"
+                  id="bladderhealthgoals"
+                  defaultValue={bladderhealthgoals}
+                  value={bladderhealthgoals || ""}
+                  onChange={(e) => setbladderhealthgoals(e.target.value)}
+                />
+                <label for="toiletingschedule">Toileting Schedule: </label>
+                <input
+                  type="text"
+                  id="toiletingschedule"
+                  defaultValue={toiletingschedule}
+                  value={toiletingschedule || ""}
+                  onChange={(e) => settoiletingschedule(e.target.value)}
+                />
+                <label for="continenceaids">Continence Aids: </label>
+                <input
+                  type="text"
+                  id="continenceaids"
+                  value={continenceaids || ""}
+                />
+                <button onClick={updateContinenceHandler}>Submit</button>
+              </fieldset>
+            </form>
+          </Collapse>
+
+          <Button onClick={(e) => setPageSwitch(true)}>BACK</Button>
+          <Button onClick={(e) => setShowCharts(true)}>Charts</Button>
+          
+            <Progressnote Resident_ID={residentid}></Progressnote>
         </div>
-      )
+      );
+    } else {
+      return (
+        <div>
+          <Charts
+            Resident_ID={residentid}
+            setShowCharts={setShowCharts}
+            ShowCharts={ShowCharts}
+          ></Charts>
+        </div>
+      );
     }
   }
 };

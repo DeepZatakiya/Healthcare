@@ -36,3 +36,30 @@
     transform: rotate(360deg);
   }
 }
+
+#DietaryPDF{
+  width: 595px;
+}
+#upleft { 
+  max-width:198.33px; 
+  height: 100px;
+  overflow-x: hidden;
+  background:red; float:left; 
+}
+#abc {
+  text-align: left;
+  font-size: xx-small;
+}
+
+#upright { 
+  width:198.33px; 
+  height: 100px;
+  background:blue; 
+  float:left
+}
+#below { 
+  width:198.33px; 
+  height: 100px;
+  float:left;
+  background:green 
+}

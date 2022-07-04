@@ -3,8 +3,22 @@ import { Button } from "react-bootstrap";
 import { Table } from "react-bootstrap";
 import Personalcaredirective from "./personalcaredirective";
 import Wounddirective from "./wounddirective";
+import Alert from "react-bootstrap/Alert";
 
 const Charts = (props) => {
+  const [showaddpersonalcaredirective, setShowAddPersonalCareDirective] =
+    useState(false);
+  const [dateofcreationforpersonalcare, setDateofcreationforpersonalcare] =
+    useState("");
+  const [authorforpersonalcare, setAuthorforpersonalcare] = useState("");
+  const [procedurenamepersonalcare, setProcedurenamepersonalcare] =
+    useState("");
+  const [directivePersonalcare, setdirectivePersonalcare] = useState("");
+  const [ResidentIDpersonalcare, setResidentIDpersonalcare] = useState(
+    props.Resident_ID
+  );
+  const [statuspersonalcare, setstatusPersonalcare] = useState("active");
+
   const [directiveIDforpersonalcare, setdirectiveIDforpersonalcare] =
     useState("");
   const [directiveIDforwound, setdirectiveIDforwound] = useState("");
@@ -60,6 +74,28 @@ const Charts = (props) => {
     setdirectiveIDforwound(id);
     setShowWoundChart(!showwoundchart);
   };
+  const data_value_for_personalcare_directive = {
+    dateofcreationforpersonalcare,
+    authorforpersonalcare,
+    procedurenamepersonalcare,
+    statuspersonalcare,
+    directivePersonalcare,
+  };
+
+  const addPersonalCareDirectiveHandler = (e) => {
+    fetch(
+      `http://127.0.0.1:5000/add_personalcare_Directive/${props.Resident_ID}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data_value_for_personalcare_directive),
+      }
+    ).then((resp) => resp.json());
+    e.preventDefault();
+    setShowAddPersonalCareDirective(!showaddpersonalcaredirective);
+  };
 
   return (
     <div>
@@ -102,12 +138,65 @@ const Charts = (props) => {
               )
             )}
           </Table>
+          <button
+            onClick={() =>
+              setShowAddPersonalCareDirective(!showaddpersonalcaredirective)
+            }
+          >
+            Add New Directive
+          </button>
+          <Alert show={showaddpersonalcaredirective}>
+            <form>
+              <fieldset>
+                <label for="author">Author: </label>
+                <input
+                  type="text"
+                  id="author"
+                  onChange={(e) => {
+                    setAuthorforpersonalcare(e.target.value);
+                  }}
+                />
+                <br />
+                <label for="date">Date:</label>
+                <input
+                  type="date"
+                  id="date"
+                  onChange={(e) => {
+                    setDateofcreationforpersonalcare(e.target.value);
+                  }}
+                />
+                <br />
+                <label for="procedurename">Procedure Name: </label>
+                <input
+                  type="text"
+                  id="procedurename"
+                  onChange={(e) => {
+                    setProcedurenamepersonalcare(e.target.value);
+                  }}
+                />
+                <br />
+                <label for="directive">Directive: </label>
+                <input
+                  type="text"
+                  id="directive"
+                  onChange={(e) => {
+                    setdirectivePersonalcare(e.target.value);
+                  }}
+                />
+                <br />
+                <button onClick={(e) => addPersonalCareDirectiveHandler(e)}>
+                  Submit
+                </button>
+              </fieldset>
+            </form>
+          </Alert>
           {showpersonalcarechart ? (
             <>
               <Personalcaredirective
                 DirectiveID={directiveIDforpersonalcare}
                 Resident_ID={props.Resident_ID}
                 data={personalcarechartdata}
+                status={statuspersonalcare}
               />
             </>
           ) : null}

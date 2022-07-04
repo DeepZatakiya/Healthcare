@@ -1,6 +1,6 @@
-import React from 'react'
-import { useState } from 'react';
-import { Table } from "react-bootstrap";
+import React from "react";
+import { useState } from "react";
+import { Button, Table } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 
 export default function Personalcaredirective(props) {
@@ -17,7 +17,7 @@ export default function Personalcaredirective(props) {
     typeofhygiene,
     time,
     comment,
-    directiveID:props.DirectiveID
+    directiveID: props.DirectiveID,
   };
 
   const addPersonalCareHandler = (e) => {
@@ -29,95 +29,91 @@ export default function Personalcaredirective(props) {
       body: JSON.stringify(data_value_for_personalcare_chart),
     }).then((resp) => resp.json());
     e.preventDefault();
-    setShowAddPersonalCare(!showaddpersonalcare)
+    setShowAddPersonalCare(!showaddpersonalcare);
   };
 
   return (
-
     <>
-          <Table>
-            <thead>
+    {props.status}
+      <Table>
+        <thead>
+          <tr>
+            <th>Author</th>
+            <th>Date</th>
+            <th>Type Of Hygiene</th>
+            <th>Time</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        {Object.entries(props.data).map(([key, value]) => (
+          <>
+            <tbody>
               <tr>
-                <th>Author</th>
-                <th>Date</th>
-                <th>Type Of Hygiene</th>
-                <th>Time</th>
-                <th>Comment</th>
+                <td>{value["Author"]}</td>
+                <td>{value["Date"]}</td>
+                <td>{value["Type_Of_Hygiene"]}</td>
+                <td>{value["Time"]}</td>
+                <td>{value["Comment"]}</td>
               </tr>
-            </thead>
-            {Object.entries(props.data).map(
-              ([key, value]) => (
-                <>
-                  <tbody>
-                    <tr>
-                      <td>{value["Author"]}</td>
-                      <td>{value["Date"]}</td>
-                      <td>{value["Type_Of_Hygiene"]}</td>
-                      <td>{value["Time"]}</td>
-                      <td>{value["Comment"]}</td>
-                    </tr>
-                  </tbody>
-                </>
-              )
-            )}
-          </Table>
-          <button onClick={() => setShowAddPersonalCare(!showaddpersonalcare)}>
-              Add To Chart
-            </button>
-            <Alert show={showaddpersonalcare}>
-              <form>
-                <fieldset>
-                  <label for="author">Author: </label>
-                  <input
-                    type="text"
-                    id="author"
-                    onChange={(e) => {
-                        setAuthor(e.target.value);
-                      }}
-                  />
-                  <br />
-                  <label for="date">
-                    Date: 
-                  </label>
-                  <input
-                    type="date"
-                    id="date"
-                    onChange={(e) => {
-                      setDate(e.target.value);
-                    }}
-                  />
-                  <br />
-                  <label for="typeofhygiene">Type Of Hygiene: </label>
-                  <input
-                    type="text"
-                    id="typeofhygiene"
-                    onChange={(e) => {
-                        setTypeOfHygiene(e.target.value);
-                      }}
-                  />
-                  <br />
-                  <label for="time">Time: </label>
-                  <input
-                    type="time"
-                    id="time"
-                    onChange={(e) => {
-                        setTime(e.target.value);
-                      }}
-                  />
-                  <br />
-                  <label for="comment">Comment: </label>
-                  <input
-                    type="text"
-                    id="comment"
-                    onChange={(e) => {
-                        setComment(e.target.value);
-                      }}
-                  />
-                  <br />
-                  <button onClick={(e) => addPersonalCareHandler(e)}>Submit</button>
-                </fieldset>
-              </form>
-            </Alert>
-        </>
-  )
+            </tbody>
+          </>
+        ))}
+      </Table>
+      <button onClick={() => setShowAddPersonalCare(!showaddpersonalcare)}>
+        Add To Chart
+      </button>
+      <Alert show={showaddpersonalcare}>
+        <form>
+          <fieldset>
+            <label for="author">Author: </label>
+            <input
+              type="text"
+              id="author"
+              onChange={(e) => {
+                setAuthor(e.target.value);
+              }}
+            />
+            <br />
+            <label for="date">Date:</label>
+            <input
+              type="date"
+              id="date"
+              onChange={(e) => {
+                setDate(e.target.value);
+              }}
+            />
+            <br />
+            <label for="typeofhygiene">Type Of Hygiene: </label>
+            <input
+              type="text"
+              id="typeofhygiene"
+              onChange={(e) => {
+                setTypeOfHygiene(e.target.value);
+              }}
+            />
+            <br />
+            <label for="time">Time: </label>
+            <input
+              type="time"
+              id="time"
+              onChange={(e) => {
+                setTime(e.target.value);
+              }}
+            />
+            <br />
+            <label for="comment">Comment: </label>
+            <input
+              type="text"
+              id="comment"
+              onChange={(e) => {
+                setComment(e.target.value);
+              }}
+            />
+            <br />
+            <button onClick={(e) => addPersonalCareHandler(e)}>Submit</button>
+          </fieldset>
+        </form>
+      </Alert>
+    </>
+  );
 }

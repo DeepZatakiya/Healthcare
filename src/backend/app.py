@@ -1,6 +1,7 @@
 from email.mime import image
 from email.policy import default
 import io
+from telnetlib import DO
 from tkinter import CASCADE, Image
 from xml.etree.ElementTree import Comment
 from MySQLdb import Date
@@ -34,6 +35,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+@app.route('/get_progressnote/<Resident_ID>',methods=['GET'])
+def get_progressnote(Resident_ID):
+    s = text("SELECT * FROM progress_note where Resident_ID='"+Resident_ID+"'")
+    conn = engine.connect()
+    result = conn.execute(s)
+    result_as_dict = result.mappings().all()
+    x=list(result_as_dict)
+    a=[]
+    for i in x:
+        i=dict(i)
+        a.append(i)
+    return jsonify(a)
 
 @app.route('/get_main_data/<FirstName>',methods=['GET'])
 def get_main_data(FirstName):
@@ -221,8 +234,9 @@ def update_main_data(Resident_ID):
     AdmissionFrom=request.json['AdmissionFrom']
     DateOfAdmission=request.json['DateOfAdmission']
 
-
+    a={"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
     print(DOB)
+    
 
     s = text("update main_table set LastName='"+LastName+"',FirstName='"+FirstName+"',Facility='"+Facility+"',Room_no='"+Room_no+"',Bed='"+Bed+"',Wing='"+Wing+"',PrefferedName='"+PrefferedName+"',Title='"+Title+"',Gender='"+Gender+"',MarritalStatus='"+MarritalStatus+"',DOB='"+DOB+"',CulturalBackground='"+CulturalBackground+"',Religion='"+Religion+"',MotherTongue='"+MotherTongue+"',ATSIStatus='"+ATSIStatus+"',Nationality='"+Nationality+"',Medicare='"+Medicare+"',MedicareExDate='"+MedicareExDate+"',DVA='"+DVA+"',DVAExDate='"+DVAExDate+"',HealthCareCard='"+HealthCareCard+"',HealthCareCardExDate='"+HealthCareCardExDate+"',AdmissionFrom='"+AdmissionFrom+"', DateOfAdmission='"+DateOfAdmission+"' where Resident_ID="+Resident_ID+"")
     print(s)
@@ -356,6 +370,18 @@ def update_continence_data(Resident_ID):
     result = conn.execute(s)
     return "DONE"  
 
+@app.route('/add_progress_note/<Resident_ID>',methods=['POST'])
+def add_progress_note(Resident_ID):
+    Author = request.json['author']
+    Date = request.json['date']
+    subject = request.json['subject']
+
+    s = text("insert into progress_note (Resident_ID, author, date, subject) values ('"+Resident_ID+"','"+Author+"','"+Date+"','"+subject+"')")
+    print(s)
+    conn = engine.connect()
+    result = conn.execute(s)
+    return "DONE"  
+
 @app.route('/add_personalcare_chart/<Resident_ID>',methods=['POST'])
 def add_personalcare_chart(Resident_ID):
     Author = request.json['author']
@@ -366,6 +392,20 @@ def add_personalcare_chart(Resident_ID):
     DirectiveID = request.json['directiveID']
 
     s = text("insert into personal_care_chart (Resident_ID,Personal_Care_Chart_Directive_ID, Author, Type_Of_Hygiene, Date, Time, Comment) values ('"+Resident_ID+"','"+str(DirectiveID)+"','"+Author+"','"+Type_Of_Hygiene+"','"+Date+"','"+Time+"','"+Comment+"')")
+    print(s)
+    conn = engine.connect()
+    result = conn.execute(s)
+    return "DONE"  
+
+@app.route('/add_personalcare_Directive/<Resident_ID>',methods=['POST'])
+def add_personalcare_Directive(Resident_ID):
+    Author = request.json['authorforpersonalcare']
+    Date = request.json['dateofcreationforpersonalcare']
+    ProcedureName = request.json['procedurenamepersonalcare']
+    Status = request.json['statuspersonalcare']
+    Directive = request.json['directivePersonalcare']
+
+    s = text("insert into personal_care_chart_directive (Resident_ID, Author, Procedure_Name, Date_Of_Creation, Status, Directive) values ('"+Resident_ID+"','"+Author+"','"+ProcedureName+"','"+Date+"','"+str(Status)+"','"+Directive+"')")
     print(s)
     conn = engine.connect()
     result = conn.execute(s)
