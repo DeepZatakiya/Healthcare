@@ -13,6 +13,7 @@ const Home = () => {
   const [progress, setProgress] = useState("");
 
   const [text, setText] = useState("");
+  const [img, setImg] = useState("");
   
 
   const [ShowCharts, setShowCharts] = useState(false);
@@ -575,9 +576,7 @@ const Home = () => {
     const canvasSave = document.getElementById("canvas");
     const d = canvasSave.toDataURL("image/png");
     console.log(d);
-    const w = window.open("about:blank", "image from canvas");
-    w.document.write("<img src='" + d + "' alt='from canvas'/>");
-    console.log("Saved!");
+    setImg(d);
   }
 
   const setPosition = (e) => {
@@ -647,23 +646,24 @@ const Home = () => {
   } else {
     if (!ShowCharts) {
       return (
-        // <>
-        // <style>
-        //   {`
-        //     #canvas {
-        //       border: 1px solid black;
-        //     }
-        //   `}
-        // </style>
-        // <canvas
-        //   ref={canvas}
-        //   onMouseMove={draw}
-        //   onMouseDown={setPosition}
-        //   onMouseEnter={setPosition}
-        //   id="canvas"
-        // ></canvas>
-        // <button onClick={()=>{saveCanvas()}}></button>
-        // </>
+        <>
+        <style>
+          {`
+            #canvas {
+              border: 1px solid black;
+            }
+          `}
+        </style>
+        <canvas
+          ref={canvas}
+          onMouseMove={draw}
+          onMouseDown={setPosition}
+          onMouseEnter={setPosition}
+          id="canvas"
+        ></canvas>
+        <button onClick={()=>{saveCanvas()}}>click me</button>
+        <img src={img} alt='from canvas'/>
+        
         <div className="App">
           <Navbar bg="primary" variant="dark" expand="lg">
             <Container>
@@ -1821,7 +1821,7 @@ const Home = () => {
           
             <Progressnote Resident_ID={residentid}></Progressnote>
         </div>
-      );
+        </>);
     } else {
       return (
         <div>
